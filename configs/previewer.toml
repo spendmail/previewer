@@ -1,9 +1,6 @@
 [logger]
     level = "debug"
     file = "/tmp/previewer.log"
-    size = 500
-    backups = 3
-    age = 30
 
 [http]
 host = "0.0.0.0"

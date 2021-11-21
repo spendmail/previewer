@@ -5,6 +5,7 @@ import (
 	"log"
 
 	internalconfig "github.com/spendmail/previewer/internal/config"
+	internallogger "github.com/spendmail/previewer/internal/logger"
 	internalresizer "github.com/spendmail/previewer/internal/resizer"
 )
 
@@ -23,10 +24,18 @@ func main() {
 	}
 
 	// Config initialization.
-	_, err := internalconfig.NewConfig(configPath)
+	config, err := internalconfig.NewConfig(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Logger initialization.
+	logger, err := internallogger.New(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	logger.Error("qwerty")
 
 	width := uint(480)
 	height := uint(320)

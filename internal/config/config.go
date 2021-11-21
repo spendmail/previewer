@@ -57,18 +57,6 @@ func (c *Config) GetLoggerFile() string {
 	return c.Logger.File
 }
 
-func (c *Config) GetLoggerSize() int {
-	return c.Logger.Size
-}
-
-func (c *Config) GetLoggerBackups() int {
-	return c.Logger.Backups
-}
-
-func (c *Config) GetLoggerAge() int {
-	return c.Logger.Age
-}
-
 func (c *Config) GetHTTPHost() string {
 	return c.HTTP.Host
 }
