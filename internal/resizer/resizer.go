@@ -1,44 +1,50 @@
 package resizer
 
-import "gopkg.in/gographics/imagick.v2/imagick"
+import (
+	"fmt"
+	"github.com/pkg/errors"
+	"gopkg.in/gographics/imagick.v2/imagick"
+)
 
 type Resizer struct {
 }
 
-func New() Resizer {
-	return Resizer{}
+func New() *Resizer {
+	return &Resizer{}
 }
 
-func (r *Resizer) Resize(width, height uint, inputFilename, outputFilename string) error {
+var (
+	ErrFileRead       = errors.New("unable to read a file")
+	ErrImageResize    = errors.New("unable to resize an image")
+	ErrQualitySetting = errors.New("unable to set a compression quality")
+)
+
+func (r *Resizer) Resize(width, height uint, image []byte) ([]byte, error) {
 
 	imagick.Initialize()
-	// Schedule cleanup
 	defer imagick.Terminate()
 
 	mw := imagick.NewMagickWand()
 
-	err := mw.ReadImage(inputFilename)
+	err := mw.ReadImageBlob(image)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("%w: %s", ErrFileRead, err)
 	}
+	
+	//err := mw.ReadImage(inputFilename)
+	//if err != nil {
+	//	return nil, fmt.Errorf("%w: %s", ErrFileRead, err)
+	//}
 
-	// Resize the image using the Lanczos filter
-	// The blur factor is a float, where > 1 is blurry, < 1 is sharp
 	err = mw.ResizeImage(width, height, imagick.FILTER_LANCZOS, 1)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("%w: %s", ErrImageResize, err)
 	}
 
-	// Set the compression quality to 95 (high quality = low compression)
 	err = mw.SetImageCompressionQuality(95)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("%w: %s", ErrQualitySetting, err)
 	}
 
-	err = mw.WriteImage(outputFilename)
-	if err != nil {
-		panic(err)
-	}
-
-	return nil
+	return mw.GetImageBlob(), nil
 }

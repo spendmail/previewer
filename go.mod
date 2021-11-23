@@ -3,12 +3,13 @@ module github.com/spendmail/previewer
 go 1.17
 
 require (
+	github.com/cavaliercoder/grab v2.0.0+incompatible
+	github.com/gorilla/mux v1.8.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spendmail/otus_go_hw/hw12_13_14_15_calendar v0.0.0-20211031121843-3c5ddf21cf68
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
-	go.uber.org/zap v1.17.0
 	gopkg.in/gographics/imagick.v2 v2.6.0
 )
 
@@ -26,8 +27,6 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf // indirect
 	golang.org/x/text v0.3.6 // indirect
 	gopkg.in/ini.v1 v1.63.2 // indirect

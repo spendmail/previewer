@@ -1,12 +1,19 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
 
+	internalapp "github.com/spendmail/previewer/internal/app"
 	internalconfig "github.com/spendmail/previewer/internal/config"
 	internallogger "github.com/spendmail/previewer/internal/logger"
 	internalresizer "github.com/spendmail/previewer/internal/resizer"
+	internalserver "github.com/spendmail/previewer/internal/server/http"
 )
 
 var configPath string
@@ -35,16 +42,52 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logger.Error("qwerty")
-
-	width := uint(480)
-	height := uint(320)
-	inputFilename := "/home/spendlively/vhosts/previewer/help/images/me.jpg"
-	outputFilename := "/home/spendlively/vhosts/previewer/help/images/me_result.jpg"
-
-	resizer := internalresizer.New()
-	err = resizer.Resize(width, height, inputFilename, outputFilename)
+	// Application initialization.
+	app, err := internalapp.New(logger, internalresizer.New())
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+
+	// Logger initialization.
+	server := internalserver.New(config, logger, app)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGHUP)
+	defer cancel()
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// Locking until OS signal is sent or context cancel func is called.
+		<-ctx.Done()
+
+		// Stopping http server.
+		stopHTTPCtx, stopHTTPCancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer stopHTTPCancel()
+		if err := server.Stop(stopHTTPCtx); err != nil {
+			logger.Error(err.Error())
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		logger.Info("starting http server...")
+
+		// Locking over here until server is stopped.
+		if err := server.Start(); err != nil {
+			logger.Error(err.Error())
+			cancel()
+		}
+	}()
+
+	logger.Info("server is running...")
+
+	wg.Wait()
 }
