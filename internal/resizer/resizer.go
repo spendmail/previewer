@@ -31,11 +31,6 @@ func (r *Resizer) Resize(width, height uint, image []byte) ([]byte, error) {
 		return nil, fmt.Errorf("%w: %s", ErrFileRead, err)
 	}
 	
-	//err := mw.ReadImage(inputFilename)
-	//if err != nil {
-	//	return nil, fmt.Errorf("%w: %s", ErrFileRead, err)
-	//}
-
 	err = mw.ResizeImage(width, height, imagick.FILTER_LANCZOS, 1)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrImageResize, err)

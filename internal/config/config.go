@@ -12,6 +12,7 @@ var ErrConfigRead = errors.New("unable to read config file")
 type Config struct {
 	Logger LoggerConf
 	HTTP   HTTPConf
+	Cache  CacheConf
 }
 
 type LoggerConf struct {
@@ -25,6 +26,10 @@ type LoggerConf struct {
 type HTTPConf struct {
 	Host string
 	Port string
+}
+
+type CacheConf struct {
+	Size int
 }
 
 func NewConfig(path string) (*Config, error) {
@@ -46,6 +51,9 @@ func NewConfig(path string) (*Config, error) {
 			viper.GetString("http.host"),
 			viper.GetString("http.port"),
 		},
+		CacheConf{
+			viper.GetInt("cache.size"),
+		},
 	}, nil
 }
 
@@ -63,4 +71,8 @@ func (c *Config) GetHTTPHost() string {
 
 func (c *Config) GetHTTPPort() string {
 	return c.HTTP.Port
+}
+
+func (c *Config) GetCacheSize() int {
+	return c.Cache.Size
 }

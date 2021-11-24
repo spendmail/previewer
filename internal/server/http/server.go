@@ -37,6 +37,7 @@ var (
 	ErrParameterParseWidth  = errors.New("unable to parse image width")
 	ErrParameterParseHeight = errors.New("unable to parse image height")
 	ErrResizeImage          = errors.New("unable to resize an image")
+	ErrResponseWrite        = errors.New("unable to write a response")
 )
 
 type Handler struct {
@@ -46,7 +47,9 @@ type Handler struct {
 
 func SendServerErrorResponse(w http.ResponseWriter, h *Handler, errType, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
-	_, _ = w.Write([]byte(errType.Error()))
+	if n, e := w.Write([]byte(errType.Error())); e != nil {
+		h.Logger.Error(fmt.Errorf("%q: trying to write %d bytes: %s", ErrResponseWrite, n, e.Error()))
+	}
 	h.Logger.Error(fmt.Errorf("%q: %s", errType, err.Error()))
 }
 

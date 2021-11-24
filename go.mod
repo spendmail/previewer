@@ -3,6 +3,7 @@ module github.com/spendmail/previewer
 go 1.17
 
 require (
+	github.com/bluele/gcache v0.0.2
 	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/pkg/errors v0.9.1

@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// Application initialization.
-	app, err := internalapp.New(logger, internalresizer.New())
+	app, err := internalapp.New(config, logger, internalresizer.New())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,8 +86,6 @@ func main() {
 			cancel()
 		}
 	}()
-
-	logger.Info("server is running...")
 
 	wg.Wait()
 }
