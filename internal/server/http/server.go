@@ -45,8 +45,8 @@ type Handler struct {
 	Logger Logger
 }
 
-func SendServerErrorResponse(w http.ResponseWriter, h *Handler, errType, err error) {
-	w.WriteHeader(http.StatusInternalServerError)
+func SendBadGatewayStatus(w http.ResponseWriter, h *Handler, errType, err error) {
+	w.WriteHeader(http.StatusBadGateway)
 	if n, e := w.Write([]byte(errType.Error())); e != nil {
 		h.Logger.Error(fmt.Errorf("%q: trying to write %d bytes: %s", ErrResponseWrite, n, e.Error()))
 	}
@@ -57,19 +57,19 @@ func (h *Handler) resizeHandler(w http.ResponseWriter, r *http.Request) {
 
 	width, err := strconv.Atoi(mux.Vars(r)["width"])
 	if err != nil {
-		SendServerErrorResponse(w, h, ErrParameterParseWidth, err)
+		SendBadGatewayStatus(w, h, ErrParameterParseWidth, err)
 		return
 	}
 
 	height, err := strconv.Atoi(mux.Vars(r)["height"])
 	if err != nil {
-		SendServerErrorResponse(w, h, ErrParameterParseHeight, err)
+		SendBadGatewayStatus(w, h, ErrParameterParseHeight, err)
 		return
 	}
 
 	bytes, err := h.App.ResizeImageByUrl(width, height, mux.Vars(r)["url"])
 	if err != nil {
-		SendServerErrorResponse(w, h, ErrResizeImage, err)
+		SendBadGatewayStatus(w, h, ErrResizeImage, err)
 		return
 	}
 
