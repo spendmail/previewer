@@ -10,6 +10,7 @@ import (
 	"time"
 
 	internalapp "github.com/spendmail/previewer/internal/app"
+	internalcache "github.com/spendmail/previewer/internal/cache"
 	internalconfig "github.com/spendmail/previewer/internal/config"
 	internallogger "github.com/spendmail/previewer/internal/logger"
 	internalresizer "github.com/spendmail/previewer/internal/resizer"
@@ -42,8 +43,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Cache initialization.
+	cache, err := internalcache.New(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Application initialization.
-	app, err := internalapp.New(config, logger, internalresizer.New())
+	app, err := internalapp.New(logger, internalresizer.New(), cache)
 	if err != nil {
 		log.Fatal(err)
 	}

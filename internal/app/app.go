@@ -3,7 +3,6 @@ package app
 import (
 	"errors"
 	"fmt"
-	"github.com/bluele/gcache"
 	"io"
 	"net/http"
 )
@@ -11,10 +10,6 @@ import (
 const (
 	DefaultScheme = "http://"
 )
-
-type Config interface {
-	GetCacheSize() int
-}
 
 type Logger interface {
 	Debug(args ...interface{})
@@ -28,8 +23,9 @@ type Resizer interface {
 }
 
 type Cache interface {
-	Set(key, value interface{}) error
-	Get(key interface{}) (interface{}, error)
+	Set(key string, value []byte) bool
+	Get(key string) ([]byte, bool)
+	Clear()
 }
 
 type Application struct {
@@ -41,7 +37,6 @@ type Application struct {
 var (
 	ErrDownload = errors.New("unable to download a file")
 	ErrResize   = errors.New("unable to resize a file")
-	ErrCacheSet = errors.New("unable to set a cache value")
 )
 
 func (app *Application) downloadByUrl(url string) ([]byte, error) {
@@ -62,9 +57,8 @@ func (app *Application) downloadByUrl(url string) ([]byte, error) {
 
 func (app *Application) ResizeImageByUrl(width, height int, url string) ([]byte, error) {
 
-	i, err := app.Cache.Get(url)
-	if err == nil {
-		return i.([]byte), nil
+	if resultBytes, exists := app.Cache.Get(url); exists == true {
+		return resultBytes, nil
 	}
 
 	sourceBytes, err := app.downloadByUrl(url)
@@ -77,17 +71,14 @@ func (app *Application) ResizeImageByUrl(width, height int, url string) ([]byte,
 		return []byte{}, fmt.Errorf("%w: %s", ErrResize, err)
 	}
 
-	err = app.Cache.Set(url, resultBytes)
-	if err != nil {
-		return []byte{}, fmt.Errorf("%w: %s", ErrCacheSet, err)
-	}
+	_ = app.Cache.Set(url, resultBytes)
 
 	return resultBytes, nil
 }
 
-func New(config Config, logger Logger, resizer Resizer) (*Application, error) {
+func New(logger Logger, resizer Resizer, cache Cache) (*Application, error) {
 	return &Application{
-		Cache:   gcache.New(config.GetCacheSize()).LRU().Build(),
+		Cache:   cache,
 		Logger:  logger,
 		Resizer: resizer,
 	}, nil

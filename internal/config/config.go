@@ -29,7 +29,8 @@ type HTTPConf struct {
 }
 
 type CacheConf struct {
-	Size int
+	Capacity int64
+	Path     string
 }
 
 func NewConfig(path string) (*Config, error) {
@@ -52,7 +53,8 @@ func NewConfig(path string) (*Config, error) {
 			viper.GetString("http.port"),
 		},
 		CacheConf{
-			viper.GetInt("cache.size"),
+			viper.GetInt64("cache.capacity"),
+			viper.GetString("cache.path"),
 		},
 	}, nil
 }
@@ -73,6 +75,10 @@ func (c *Config) GetHTTPPort() string {
 	return c.HTTP.Port
 }
 
-func (c *Config) GetCacheSize() int {
-	return c.Cache.Size
+func (c *Config) GetCacheCapacity() int64 {
+	return c.Cache.Capacity
+}
+
+func (c *Config) GetCachePath() string {
+	return c.Cache.Path
 }
