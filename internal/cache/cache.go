@@ -154,6 +154,7 @@ func encodeFileName(key string) string {
 	return base64.StdEncoding.EncodeToString([]byte(key))
 }
 
+//nolint:unused,deadcode
 func decodeFileName(input string) (string, error) {
 	bytes, err := base64.StdEncoding.DecodeString(input)
 	if err != nil {

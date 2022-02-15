@@ -100,7 +100,7 @@ func TestCacheMultithreading(t *testing.T) {
 
 	go func() {
 		defer wg.Done()
-		for i := 0; i < 1_000_000; i++ {
+		for i := 0; i < 1_000; i++ {
 			key := strconv.Itoa(i)
 			_ = c.Set(key, []byte(key))
 		}
@@ -108,8 +108,8 @@ func TestCacheMultithreading(t *testing.T) {
 
 	go func() {
 		defer wg.Done()
-		for i := 0; i < 1_000_000; i++ {
-			key := strconv.Itoa(rand.Intn(1_000_000))
+		for i := 0; i < 1_000; i++ {
+			key := strconv.Itoa(rand.Intn(1_000))
 			_, _ = c.Get(key)
 		}
 	}()
