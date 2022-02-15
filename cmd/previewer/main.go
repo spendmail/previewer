@@ -44,7 +44,7 @@ func main() {
 	}
 
 	// Cache initialization.
-	cache, err := internalcache.New(config)
+	cache, err := internalcache.New(config, logger)
 	if err != nil {
 		log.Fatal(err)
 	}

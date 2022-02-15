@@ -10,6 +10,23 @@ type List interface {
 	MoveToFront(i *ListItem)
 }
 
+type list struct {
+	len   int
+	front *ListItem
+	back  *ListItem
+}
+
+type ListItem struct {
+	Value interface{}
+	Next  *ListItem
+	Prev  *ListItem
+}
+
+// NewList is a list constructor: returns new list instance.
+func NewList() List {
+	return new(list)
+}
+
 // Len returns count of list elements.
 func (l *list) Len() int {
 	return l.len
@@ -122,21 +139,4 @@ func (l *list) MoveToFront(i *ListItem) {
 	i.Next.Prev = i.Prev
 	i.Next = l.front
 	l.front.Prev = i
-}
-
-type list struct {
-	len   int
-	front *ListItem
-	back  *ListItem
-}
-
-type ListItem struct {
-	Value interface{}
-	Next  *ListItem
-	Prev  *ListItem
-}
-
-// NewList is a list constructor: returns new list instance.
-func NewList() List {
-	return new(list)
 }

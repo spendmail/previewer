@@ -4,10 +4,8 @@ go 1.17
 
 require (
 	github.com/gorilla/mux v1.8.0
-	github.com/oov/psd v0.0.0-20210618170533-9fb823ddb631
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.2
-	github.com/spendmail/otus_go_hw/hw12_13_14_15_calendar v0.0.0-20211031121843-3c5ddf21cf68
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	gopkg.in/gographics/imagick.v2 v2.6.0
@@ -16,7 +14,6 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect

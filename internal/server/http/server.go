@@ -25,7 +25,7 @@ type Logger interface {
 }
 
 type Application interface {
-	ResizeImageByUrl(width, height int, url string) ([]byte, error)
+	ResizeImageByUrl(width, height int, url string, header http.Header) ([]byte, error)
 }
 
 type Server struct {
@@ -67,7 +67,7 @@ func (h *Handler) resizeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes, err := h.App.ResizeImageByUrl(width, height, mux.Vars(r)["url"])
+	bytes, err := h.App.ResizeImageByUrl(width, height, mux.Vars(r)["url"], r.Header)
 	if err != nil {
 		SendBadGatewayStatus(w, h, ErrResizeImage, err)
 		return

@@ -23,8 +23,8 @@ type Resizer interface {
 }
 
 type Cache interface {
-	Set(key string, value []byte) bool
-	Get(key string) ([]byte, bool)
+	Set(key string, value []byte) error
+	Get(key string) ([]byte, error)
 	Clear()
 }
 
@@ -39,15 +39,31 @@ var (
 	ErrResize   = errors.New("unable to resize a file")
 )
 
-func (app *Application) downloadByUrl(url string) ([]byte, error) {
+// downloadByUrl downloads image by given url forwarding original headers.
+func (app *Application) downloadByUrl(url string, header http.Header) ([]byte, error) {
 
-	resp, err := http.Get(DefaultScheme + url)
+	request, err := http.NewRequest(http.MethodGet, DefaultScheme+url, nil)
 	if err != nil {
 		return []byte{}, err
 	}
-	defer resp.Body.Close()
 
-	bytes, err := io.ReadAll(resp.Body)
+	// Forwarding original headers to remote server.
+	for name, values := range header {
+		for _, value := range values {
+			app.Logger.Error(fmt.Sprintf("%v: %v", name, value))
+			request.Header.Add(name, value)
+		}
+	}
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		if err != nil {
+			return []byte{}, err
+		}
+	}
+	defer response.Body.Close()
+
+	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -55,24 +71,33 @@ func (app *Application) downloadByUrl(url string) ([]byte, error) {
 	return bytes, nil
 }
 
-func (app *Application) ResizeImageByUrl(width, height int, url string) ([]byte, error) {
+func (app *Application) ResizeImageByUrl(width, height int, url string, header http.Header) ([]byte, error) {
 
-	if resultBytes, exists := app.Cache.Get(url); exists == true {
+	// Key includes sizes in order to store different files for different sizes of the same file.
+	cacheKey := fmt.Sprintf("%s-%d-%d", url, width, height)
+
+	// If file exists in cache, return from there.
+	resultBytes, err := app.Cache.Get(cacheKey)
+	if err == nil {
 		return resultBytes, nil
 	}
 
-	sourceBytes, err := app.downloadByUrl(url)
+	// Otherwise, download file.
+	sourceBytes, err := app.downloadByUrl(url, header)
 	if err != nil {
 		return []byte{}, fmt.Errorf("%w: %s", ErrDownload, err)
 	}
 
-	resultBytes, err := app.Resizer.Resize(uint(width), uint(height), sourceBytes)
+	// Process file.
+	resultBytes, err = app.Resizer.Resize(uint(width), uint(height), sourceBytes)
 	if err != nil {
 		return []byte{}, fmt.Errorf("%w: %s", ErrResize, err)
 	}
 
-	_ = app.Cache.Set(url, resultBytes)
+	// Set processed image in cache
+	_ = app.Cache.Set(cacheKey, resultBytes)
 
+	// And return slice of bytes.
 	return resultBytes, nil
 }
 

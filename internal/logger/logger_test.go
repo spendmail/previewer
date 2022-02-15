@@ -1,17 +1,16 @@
 package logger
 
 import (
+	internalconfig "github.com/spendmail/previewer/internal/config"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"testing"
-
-	internalconfig "github.com/spendmail/otus_go_hw/hw12_13_14_15_calendar/internal/config"
-	"github.com/stretchr/testify/require"
 )
 
 func TestLogger(t *testing.T) {
 	t.Run("logger", func(t *testing.T) {
-		config, err := internalconfig.NewConfig("../../configs/calendar.toml")
+		config, err := internalconfig.NewConfig("../../configs/previewer.toml")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -24,7 +23,10 @@ func TestLogger(t *testing.T) {
 		config.Logger.Level = "debug"
 		config.Logger.File = f.Name()
 
-		logger := New(config)
+		logger, err := New(config)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		logger.Debug("debug_message")
 		logger.Info("info_message")
@@ -38,9 +40,9 @@ func TestLogger(t *testing.T) {
 
 		content := string(b)
 
-		require.Contains(t, content, "debug\tdebug_message", "Log doesn't contain string error")
-		require.Contains(t, content, "info\tinfo_message", "Log doesn't contain string error")
-		require.Contains(t, content, "warn\twarn_message", "Log doesn't contain string error")
-		require.Contains(t, content, "error\terror_message", "Log doesn't contain string error")
+		require.Contains(t, content, "debug_message", "Log doesn't contain string error")
+		require.Contains(t, content, "info_message", "Log doesn't contain string error")
+		require.Contains(t, content, "warn_message", "Log doesn't contain string error")
+		require.Contains(t, content, "error_message", "Log doesn't contain string error")
 	})
 }
