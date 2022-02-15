@@ -2,19 +2,18 @@ package cache
 
 import (
 	"errors"
-	internalconfig "github.com/spendmail/previewer/internal/config"
 	"math/rand"
 	"strconv"
 	"sync"
 	"testing"
 
+	internalconfig "github.com/spendmail/previewer/internal/config"
 	internallogger "github.com/spendmail/previewer/internal/logger"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCache(t *testing.T) {
 	t.Run("empty cache", func(t *testing.T) {
-
 		config, err := internalconfig.NewConfig("../../configs/previewer.toml")
 		if err != nil {
 			t.Fatal(err)

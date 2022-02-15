@@ -1,11 +1,12 @@
 package logger
 
 import (
-	internalconfig "github.com/spendmail/previewer/internal/config"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	internalconfig "github.com/spendmail/previewer/internal/config"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLogger(t *testing.T) {

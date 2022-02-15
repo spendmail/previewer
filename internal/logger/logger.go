@@ -2,9 +2,10 @@ package logger
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"os"
 )
 
 const (
@@ -23,16 +24,13 @@ type Logger struct {
 	Logger *logrus.Logger
 }
 
-var (
-	ErrLogFileOpen = errors.New("unable to open a log file")
-)
+var ErrLogFileOpen = errors.New("unable to open a log file")
 
 func New(config Config) (*Logger, error) {
-
 	logger := logrus.New()
 	logger.Formatter = &logrus.TextFormatter{}
 
-	file, err := os.OpenFile(config.GetLoggerFile(), os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	file, err := os.OpenFile(config.GetLoggerFile(), os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o666)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrLogFileOpen, config.GetLoggerFile())
 	}

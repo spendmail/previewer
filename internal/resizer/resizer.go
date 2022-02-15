@@ -2,12 +2,12 @@ package resizer
 
 import (
 	"fmt"
+
 	"github.com/pkg/errors"
 	"gopkg.in/gographics/imagick.v2/imagick"
 )
 
-type Resizer struct {
-}
+type Resizer struct{}
 
 func New() *Resizer {
 	return &Resizer{}
@@ -20,7 +20,6 @@ var (
 )
 
 func (r *Resizer) Resize(width, height uint, image []byte) ([]byte, error) {
-
 	imagick.Initialize()
 	defer imagick.Terminate()
 
@@ -30,7 +29,7 @@ func (r *Resizer) Resize(width, height uint, image []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrFileRead, err)
 	}
-	
+
 	err = mw.ResizeImage(width, height, imagick.FILTER_LANCZOS, 1)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrImageResize, err)

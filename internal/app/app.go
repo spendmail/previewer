@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -39,10 +40,9 @@ var (
 	ErrResize   = errors.New("unable to resize a file")
 )
 
-// downloadByUrl downloads image by given url forwarding original headers.
-func (app *Application) downloadByUrl(url string, header http.Header) ([]byte, error) {
-
-	request, err := http.NewRequest(http.MethodGet, DefaultScheme+url, nil)
+// downloadByURL downloads image by given url forwarding original headers.
+func (app *Application) downloadByURL(url string, header http.Header) ([]byte, error) {
+	request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, DefaultScheme+url, nil)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -71,8 +71,7 @@ func (app *Application) downloadByUrl(url string, header http.Header) ([]byte, e
 	return bytes, nil
 }
 
-func (app *Application) ResizeImageByUrl(width, height int, url string, header http.Header) ([]byte, error) {
-
+func (app *Application) ResizeImageByURL(width, height int, url string, header http.Header) ([]byte, error) {
 	// Key includes sizes in order to store different files for different sizes of the same file.
 	cacheKey := fmt.Sprintf("%s-%d-%d", url, width, height)
 
@@ -83,7 +82,7 @@ func (app *Application) ResizeImageByUrl(width, height int, url string, header h
 	}
 
 	// Otherwise, download file.
-	sourceBytes, err := app.downloadByUrl(url, header)
+	sourceBytes, err := app.downloadByURL(url, header)
 	if err != nil {
 		return []byte{}, fmt.Errorf("%w: %s", ErrDownload, err)
 	}

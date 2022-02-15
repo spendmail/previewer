@@ -3,14 +3,15 @@ package http
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	"net"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 )
 
-const UrlResizePattern = "/fill/{width:[0-9]+}/{height:[0-9]+}/{url:.+}"
+const URLResizePattern = "/fill/{width:[0-9]+}/{height:[0-9]+}/{url:.+}"
 
 type Config interface {
 	GetHTTPHost() string
@@ -25,7 +26,7 @@ type Logger interface {
 }
 
 type Application interface {
-	ResizeImageByUrl(width, height int, url string, header http.Header) ([]byte, error)
+	ResizeImageByURL(width, height int, url string, header http.Header) ([]byte, error)
 }
 
 type Server struct {
@@ -48,13 +49,12 @@ type Handler struct {
 func SendBadGatewayStatus(w http.ResponseWriter, h *Handler, errType, err error) {
 	w.WriteHeader(http.StatusBadGateway)
 	if n, e := w.Write([]byte(errType.Error())); e != nil {
-		h.Logger.Error(fmt.Errorf("%q: trying to write %d bytes: %s", ErrResponseWrite, n, e.Error()))
+		h.Logger.Error(fmt.Errorf("%w: trying to write %d bytes: %s", ErrResponseWrite, n, e.Error()))
 	}
-	h.Logger.Error(fmt.Errorf("%q: %s", errType, err.Error()))
+	h.Logger.Error(fmt.Errorf("%w: %s", errType, err.Error()))
 }
 
 func (h *Handler) resizeHandler(w http.ResponseWriter, r *http.Request) {
-
 	width, err := strconv.Atoi(mux.Vars(r)["width"])
 	if err != nil {
 		SendBadGatewayStatus(w, h, ErrParameterParseWidth, err)
@@ -67,7 +67,7 @@ func (h *Handler) resizeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bytes, err := h.App.ResizeImageByUrl(width, height, mux.Vars(r)["url"], r.Header)
+	bytes, err := h.App.ResizeImageByURL(width, height, mux.Vars(r)["url"], r.Header)
 	if err != nil {
 		SendBadGatewayStatus(w, h, ErrResizeImage, err)
 		return
@@ -76,19 +76,18 @@ func (h *Handler) resizeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", http.DetectContentType(bytes))
 	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
 	if _, err := w.Write(bytes); err != nil {
-		h.Logger.Error(fmt.Errorf("%q: %s", ErrResizeImage, err.Error()))
+		h.Logger.Error(fmt.Errorf("%w: %s", ErrResizeImage, err.Error()))
 	}
 }
 
 func New(config Config, logger Logger, app Application) *Server {
-
 	handler := &Handler{
 		App:    app,
 		Logger: logger,
 	}
 
 	router := mux.NewRouter()
-	router.HandleFunc(UrlResizePattern, handler.resizeHandler).Methods("GET")
+	router.HandleFunc(URLResizePattern, handler.resizeHandler).Methods("GET")
 
 	server := &http.Server{
 		Addr:    net.JoinHostPort(config.GetHTTPHost(), config.GetHTTPPort()),

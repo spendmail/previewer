@@ -22,7 +22,7 @@ type Logger interface {
 	Error(args ...interface{})
 }
 
-type lruCache struct {
+type LruCache struct {
 	capacity int64
 	queue    List
 	items    map[string]*ListItem
@@ -45,8 +45,8 @@ var (
 )
 
 // New is a cache constructor: returns lruCache instance pointer.
-func New(config Config, logger Logger) (*lruCache, error) {
-	cache := lruCache{
+func New(config Config, logger Logger) (*LruCache, error) {
+	cache := LruCache{
 		capacity: config.GetCacheCapacity(),
 		path:     config.GetCachePath(),
 		queue:    NewList(),
@@ -63,7 +63,7 @@ func New(config Config, logger Logger) (*lruCache, error) {
 }
 
 // Get is a LruCache getter: returns value if exists, or error, if doesnt.
-func (l *lruCache) Get(key string) ([]byte, error) {
+func (l *LruCache) Get(key string) ([]byte, error) {
 	l.mutex.Lock()
 	item, exists := l.items[key]
 	l.mutex.Unlock()
@@ -92,7 +92,7 @@ func (l *lruCache) Get(key string) ([]byte, error) {
 }
 
 // Set is a LruCache setter: sets or updates value, depends on whether the value exists or not.
-func (l *lruCache) Set(key string, imageBytes []byte) error {
+func (l *LruCache) Set(key string, imageBytes []byte) error {
 	l.mutex.Lock()
 	listItem, exists := l.items[key]
 	l.mutex.Unlock()
@@ -130,10 +130,8 @@ func (l *lruCache) Set(key string, imageBytes []byte) error {
 	return nil
 }
 
-func (l *lruCache) removeLastRecentUsedElement() {
-	item := l.queue.Back()
-
-	if item != nil {
+func (l *LruCache) removeLastRecentUsedElement() {
+	if item := l.queue.Back(); item != nil {
 		backCacheItem := item.Value.(cacheItem)
 		filename := backCacheItem.value
 
@@ -164,14 +162,12 @@ func decodeFileName(input string) (string, error) {
 	return string(bytes), nil
 }
 
-func (l *lruCache) saveToFileSystem(filename string, bytes []byte) error {
-
+func (l *LruCache) saveToFileSystem(filename string, bytes []byte) error {
 	absFilename := filepath.Join(l.path, filename)
-	return ioutil.WriteFile(absFilename, bytes, 0o644)
+	return ioutil.WriteFile(absFilename, bytes, 0o600)
 }
 
-func (l *lruCache) readFromFileSystem(filename string) ([]byte, error) {
-
+func (l *LruCache) readFromFileSystem(filename string) ([]byte, error) {
 	absFilename := filepath.Join(l.path, filename)
 	bytes, err := ioutil.ReadFile(absFilename)
 	if err != nil {
@@ -181,8 +177,7 @@ func (l *lruCache) readFromFileSystem(filename string) ([]byte, error) {
 	return bytes, nil
 }
 
-func (l *lruCache) removeFromFileSystem(filename string) error {
-
+func (l *LruCache) removeFromFileSystem(filename string) error {
 	absFilename := filepath.Join(l.path, filename)
 	err := os.Remove(absFilename)
 
@@ -190,7 +185,7 @@ func (l *lruCache) removeFromFileSystem(filename string) error {
 }
 
 // Clear re-init lruCache instance.
-func (l *lruCache) Clear() {
+func (l *LruCache) Clear() {
 	l.queue = NewList()
 	l.items = make(map[string]*ListItem, l.capacity)
 }
