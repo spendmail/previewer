@@ -56,9 +56,7 @@ func (app *Application) downloadByURL(url string, header http.Header) ([]byte, e
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		if err != nil {
-			return []byte{}, err
-		}
+		return []byte{}, err
 	}
 	defer response.Body.Close()
 
