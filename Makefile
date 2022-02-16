@@ -8,7 +8,7 @@ LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%d
 build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/previewer
 
-run: build
+launch: build
 	$(BIN) -config ./configs/previewer.toml
 
 build-img:
@@ -24,17 +24,14 @@ run-img: build-img
 stop-img:
 	docker stop $(DOCKER_CONTAINER)
 
-up:
-	LDFLAGS=$(LDFLAGS) \
+run:
+	LDFLAGS="$(LDFLAGS)" \
 	CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) \
 	docker-compose -f deployments/docker-compose.yaml up -d
 
-upl:
-	LDFLAGS=$(LDFLAGS) \
+stop:
+	LDFLAGS="$(LDFLAGS)" \
 	CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) \
-	docker-compose -f deployments/docker-compose.yaml up
-
-down:
 	docker-compose -f deployments/docker-compose.yaml down
 
 .PHONY: build run build-img run-img
