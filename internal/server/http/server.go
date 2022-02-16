@@ -73,8 +73,8 @@ func (h *Handler) resizeHandler(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, internalapp.ErrDownload):
 			SendBadGatewayStatus(w, h, internalapp.ErrDownload, err)
-		case errors.Is(err, internalapp.ErrResize):
-			SendBadGatewayStatus(w, h, internalapp.ErrResize, err)
+		case errors.Is(err, internalapp.ErrFileNotFound):
+			SendBadGatewayStatus(w, h, internalapp.ErrFileNotFound, err)
 		case errors.Is(err, internalapp.ErrServerNotExists):
 			SendBadGatewayStatus(w, h, internalapp.ErrServerNotExists, err)
 		case errors.Is(err, internalapp.ErrRequest):

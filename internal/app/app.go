@@ -38,7 +38,7 @@ type Application struct {
 
 var (
 	ErrDownload        = errors.New("unable to download a file")
-	ErrResize          = errors.New("unable to resize a file")
+	ErrFileNotFound    = errors.New("file not found")
 	ErrServerNotExists = errors.New("remove server doesn't exist")
 	ErrRequest         = errors.New("request error")
 	ErrFileRead        = errors.New("unable to read a file")
@@ -96,7 +96,7 @@ func (app *Application) ResizeImageByURL(width, height int, url string, header h
 	// Process file.
 	resultBytes, err = app.Resizer.Resize(uint(width), uint(height), sourceBytes)
 	if err != nil {
-		return []byte{}, fmt.Errorf("%w: %s", ErrResize, err)
+		return []byte{}, fmt.Errorf("%w: %s", ErrFileNotFound, err)
 	}
 
 	// Set processed image in cache
