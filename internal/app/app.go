@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 )
 
@@ -36,15 +37,18 @@ type Application struct {
 }
 
 var (
-	ErrDownload = errors.New("unable to download a file")
-	ErrResize   = errors.New("unable to resize a file")
+	ErrDownload        = errors.New("unable to download a file")
+	ErrResize          = errors.New("unable to resize a file")
+	ErrServerNotExists = errors.New("remove server doesn't exist")
+	ErrRequest         = errors.New("request error")
+	ErrFileRead        = errors.New("unable to read a file")
 )
 
 // downloadByURL downloads image by given url forwarding original headers.
 func (app *Application) downloadByURL(url string, header http.Header) ([]byte, error) {
 	request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, DefaultScheme+url, nil)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, fmt.Errorf("%w: %s", ErrRequest, err)
 	}
 
 	// Forwarding original headers to remote server.
@@ -56,13 +60,18 @@ func (app *Application) downloadByURL(url string, header http.Header) ([]byte, e
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return []byte{}, err
+		var DNSError *net.DNSError
+		if errors.As(err, &DNSError) {
+			return []byte{}, fmt.Errorf("%w: %s", ErrServerNotExists, err)
+		}
+
+		return []byte{}, fmt.Errorf("%w: %s", ErrDownload, err)
 	}
 	defer response.Body.Close()
 
 	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, fmt.Errorf("%w: %s", ErrFileRead, err)
 	}
 
 	return bytes, nil
@@ -81,7 +90,7 @@ func (app *Application) ResizeImageByURL(width, height int, url string, header h
 	// Otherwise, download file.
 	sourceBytes, err := app.downloadByURL(url, header)
 	if err != nil {
-		return []byte{}, fmt.Errorf("%w: %s", ErrDownload, err)
+		return []byte{}, err
 	}
 
 	// Process file.

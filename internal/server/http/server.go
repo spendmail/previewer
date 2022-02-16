@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	internalapp "github.com/spendmail/previewer/internal/app"
 )
 
 const URLResizePattern = "/fill/{width:[0-9]+}/{height:[0-9]+}/{url:.+}"
@@ -69,7 +70,21 @@ func (h *Handler) resizeHandler(w http.ResponseWriter, r *http.Request) {
 
 	bytes, err := h.App.ResizeImageByURL(width, height, mux.Vars(r)["url"], r.Header)
 	if err != nil {
-		SendBadGatewayStatus(w, h, ErrResizeImage, err)
+		switch {
+		case errors.Is(err, internalapp.ErrDownload):
+			SendBadGatewayStatus(w, h, internalapp.ErrDownload, err)
+		case errors.Is(err, internalapp.ErrResize):
+			SendBadGatewayStatus(w, h, internalapp.ErrResize, err)
+		case errors.Is(err, internalapp.ErrServerNotExists):
+			SendBadGatewayStatus(w, h, internalapp.ErrServerNotExists, err)
+		case errors.Is(err, internalapp.ErrRequest):
+			SendBadGatewayStatus(w, h, internalapp.ErrRequest, err)
+		case errors.Is(err, internalapp.ErrFileRead):
+			SendBadGatewayStatus(w, h, internalapp.ErrFileRead, err)
+		default:
+			SendBadGatewayStatus(w, h, ErrResizeImage, err)
+		}
+
 		return
 	}
 
