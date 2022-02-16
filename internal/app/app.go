@@ -50,7 +50,6 @@ func (app *Application) downloadByURL(url string, header http.Header) ([]byte, e
 	// Forwarding original headers to remote server.
 	for name, values := range header {
 		for _, value := range values {
-			app.Logger.Error(fmt.Sprintf("%v: %v", name, value))
 			request.Header.Add(name, value)
 		}
 	}
