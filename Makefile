@@ -34,14 +34,6 @@ stop:
 	CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) \
 	docker-compose -f deployments/docker-compose.yaml down
 
-bdd-clean:
-	LDFLAGS="$(LDFLAGS)" CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) docker-compose -f deployments/docker-compose.test.yaml down \
-    --rmi local \
-		--volumes \
-		--remove-orphans \
-		--timeout 60; \
-  	LDFLAGS="$(LDFLAGS)" CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) docker-compose rm -f
-
 bdd:
 	set -e ;\
 	LDFLAGS="$(LDFLAGS)" CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) docker-compose -f deployments/docker-compose.test.yaml up --build -d ;\
