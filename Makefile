@@ -34,7 +34,7 @@ stop:
 	CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) \
 	docker-compose -f deployments/docker-compose.yaml down
 
-bdd:
+test:
 	set -e ;\
 	LDFLAGS="$(LDFLAGS)" CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) docker-compose -f deployments/docker-compose.test.yaml up --build -d ;\
 	test_status_code=0 ;\
