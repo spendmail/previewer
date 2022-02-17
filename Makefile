@@ -35,19 +35,19 @@ stop:
 	docker-compose -f deployments/docker-compose.yaml down
 
 bdd-clean:
-	docker-compose -f deployments/docker-compose.test.yaml down \
+	LDFLAGS="$(LDFLAGS)" CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) docker-compose -f deployments/docker-compose.test.yaml down \
     --rmi local \
 		--volumes \
 		--remove-orphans \
 		--timeout 60; \
-  	docker-compose rm -f
+  	LDFLAGS="$(LDFLAGS)" CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) docker-compose rm -f
 
 bdd:
 	set -e ;\
-	docker-compose -f deployments/docker-compose.test.yaml up --build -d ;\
+	LDFLAGS="$(LDFLAGS)" CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) docker-compose -f deployments/docker-compose.test.yaml up --build -d ;\
 	test_status_code=0 ;\
-	docker-compose -f deployments/docker-compose.test.yaml run integration_tests go test -v || test_status_code=$$? ;\
-	docker-compose -f deployments/docker-compose.test.yaml down ;\
+	LDFLAGS="$(LDFLAGS)" CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) docker-compose -f deployments/docker-compose.test.yaml run integration_tests go test -v || test_status_code=$$? ;\
+	LDFLAGS="$(LDFLAGS)" CONFIG_FILE_NAME=$(CONFIG_FILE_NAME) docker-compose -f deployments/docker-compose.test.yaml down ;\
 	exit $$test_status_code ;
 
 .PHONY: build run build-img run-img
