@@ -9,6 +9,7 @@ import (
 
 type Resizer struct{}
 
+// New is a resizer constructor.
 func New() *Resizer {
 	return &Resizer{}
 }
@@ -19,12 +20,13 @@ var (
 	ErrQualitySetting = errors.New("unable to set a compression quality")
 )
 
+// Resize modifies file sizes by given slice of bytes.
+// Note that Resize upscales file if source file is smaller!
 func (r *Resizer) Resize(width, height uint, image []byte) ([]byte, error) {
 	imagick.Initialize()
 	defer imagick.Terminate()
 
 	mw := imagick.NewMagickWand()
-
 	err := mw.ReadImageBlob(image)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrFileRead, err)

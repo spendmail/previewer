@@ -26,6 +26,7 @@ type Logger struct {
 
 var ErrLogFileOpen = errors.New("unable to open a log file")
 
+// New is a logger constructor.
 func New(config Config) (*Logger, error) {
 	logger := logrus.New()
 	logger.Formatter = &logrus.TextFormatter{}

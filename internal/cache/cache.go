@@ -37,11 +37,10 @@ type cacheItem struct {
 }
 
 var (
-	ErrFileNameDecode = errors.New("unable to decode filename")
-	ErrFileWrite      = errors.New("unable to write file to filesystem")
-	ErrFileRemove     = errors.New("unable to remove file from filesystem")
-	ErrFileRead       = errors.New("unable to read file from filesystem")
-	ErrItemNotExists  = errors.New("cache item does not exist")
+	ErrFileWrite     = errors.New("unable to write file to filesystem")
+	ErrFileRemove    = errors.New("unable to remove file from filesystem")
+	ErrFileRead      = errors.New("unable to read file from filesystem")
+	ErrItemNotExists = errors.New("cache item does not exist")
 )
 
 // New is a cache constructor: returns lruCache instance pointer.
@@ -126,6 +125,7 @@ func (l *LruCache) Set(key string, imageBytes []byte) error {
 	return nil
 }
 
+// removeLastRecentUsedElement removes LRU element from queue and file from filesystem.
 func (l *LruCache) removeLastRecentUsedElement() {
 	if item := l.queue.Back(); item != nil {
 		backCacheItem := item.Value.(cacheItem)
@@ -142,25 +142,18 @@ func (l *LruCache) removeLastRecentUsedElement() {
 	}
 }
 
+// encodeFileName generates filename from key.
 func encodeFileName(key string) string {
 	return base64.StdEncoding.EncodeToString([]byte(key))
 }
 
-//nolint:unused,deadcode
-func decodeFileName(input string) (string, error) {
-	bytes, err := base64.StdEncoding.DecodeString(input)
-	if err != nil {
-		return "", fmt.Errorf("%w: %s", ErrFileNameDecode, err)
-	}
-
-	return string(bytes), nil
-}
-
+// saveToFileSystem writes file to filesystem.
 func (l *LruCache) saveToFileSystem(filename string, bytes []byte) error {
 	absFilename := filepath.Join(l.path, filename)
 	return ioutil.WriteFile(absFilename, bytes, 0o600)
 }
 
+// reads file from filesystem.
 func (l *LruCache) readFromFileSystem(filename string) ([]byte, error) {
 	absFilename := filepath.Join(l.path, filename)
 	bytes, err := ioutil.ReadFile(absFilename)
@@ -171,6 +164,7 @@ func (l *LruCache) readFromFileSystem(filename string) ([]byte, error) {
 	return bytes, nil
 }
 
+// removeFromFileSystem removes file from filesystem.
 func (l *LruCache) removeFromFileSystem(filename string) error {
 	absFilename := filepath.Join(l.path, filename)
 	err := os.Remove(absFilename)
