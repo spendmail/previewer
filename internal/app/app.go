@@ -44,6 +44,15 @@ var (
 	ErrFileRead        = errors.New("unable to read a file")
 )
 
+// New is an application constructor.
+func New(logger Logger, resizer Resizer, cache Cache) (*Application, error) {
+	return &Application{
+		Cache:   cache,
+		Logger:  logger,
+		Resizer: resizer,
+	}, nil
+}
+
 // downloadByURL downloads image by given url forwarding original headers.
 func (app *Application) downloadByURL(url string, headers map[string][]string) ([]byte, error) {
 	request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, DefaultScheme+url, nil)
@@ -106,13 +115,4 @@ func (app *Application) ResizeImageByURL(width, height int, url string, headers 
 
 	// And return slice of bytes.
 	return resultBytes, nil
-}
-
-// New is an application constructor.
-func New(logger Logger, resizer Resizer, cache Cache) (*Application, error) {
-	return &Application{
-		Cache:   cache,
-		Logger:  logger,
-		Resizer: resizer,
-	}, nil
 }
