@@ -55,7 +55,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Logger initialization.
+	// HTTP server initialization.
 	server := internalserver.New(config, logger, app)
 	if err != nil {
 		log.Fatal(err)
