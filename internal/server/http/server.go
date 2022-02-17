@@ -9,10 +9,14 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	internalapp "github.com/spendmail/previewer/internal/app"
 )
 
-const URLResizePattern = "/fill/{width:[0-9]+}/{height:[0-9]+}/{url:.+}"
+const (
+	URLResizePattern = "/fill/{width:[0-9]+}/{height:[0-9]+}/{url:.+}"
+	WidthField       = "width"
+	HeightField      = "height"
+	URLField         = "url"
+)
 
 type Config interface {
 	GetHTTPHost() string
@@ -47,54 +51,7 @@ type Handler struct {
 	Logger Logger
 }
 
-func SendBadGatewayStatus(w http.ResponseWriter, h *Handler, errType, err error) {
-	w.WriteHeader(http.StatusBadGateway)
-	if n, e := w.Write([]byte(errType.Error())); e != nil {
-		h.Logger.Error(fmt.Errorf("%w: trying to write %d bytes: %s", ErrResponseWrite, n, e.Error()))
-	}
-	h.Logger.Error(fmt.Errorf("%w: %s", errType, err.Error()))
-}
-
-func (h *Handler) resizeHandler(w http.ResponseWriter, r *http.Request) {
-	width, err := strconv.Atoi(mux.Vars(r)["width"])
-	if err != nil {
-		SendBadGatewayStatus(w, h, ErrParameterParseWidth, err)
-		return
-	}
-
-	height, err := strconv.Atoi(mux.Vars(r)["height"])
-	if err != nil {
-		SendBadGatewayStatus(w, h, ErrParameterParseHeight, err)
-		return
-	}
-
-	bytes, err := h.App.ResizeImageByURL(width, height, mux.Vars(r)["url"], r.Header)
-	if err != nil {
-		switch {
-		case errors.Is(err, internalapp.ErrDownload):
-			SendBadGatewayStatus(w, h, internalapp.ErrDownload, err)
-		case errors.Is(err, internalapp.ErrFileNotFound):
-			SendBadGatewayStatus(w, h, internalapp.ErrFileNotFound, err)
-		case errors.Is(err, internalapp.ErrServerNotExists):
-			SendBadGatewayStatus(w, h, internalapp.ErrServerNotExists, err)
-		case errors.Is(err, internalapp.ErrRequest):
-			SendBadGatewayStatus(w, h, internalapp.ErrRequest, err)
-		case errors.Is(err, internalapp.ErrFileRead):
-			SendBadGatewayStatus(w, h, internalapp.ErrFileRead, err)
-		default:
-			SendBadGatewayStatus(w, h, ErrResizeImage, err)
-		}
-
-		return
-	}
-
-	w.Header().Set("Content-Type", http.DetectContentType(bytes))
-	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
-	if _, err := w.Write(bytes); err != nil {
-		h.Logger.Error(fmt.Errorf("%w: %s", ErrResizeImage, err.Error()))
-	}
-}
-
+// New is HTTP service constructor.
 func New(config Config, logger Logger, app Application) *Server {
 	handler := &Handler{
 		App:    app,
@@ -102,7 +59,7 @@ func New(config Config, logger Logger, app Application) *Server {
 	}
 
 	router := mux.NewRouter()
-	router.HandleFunc(URLResizePattern, handler.resizeHandler).Methods("GET")
+	router.HandleFunc(URLResizePattern, handler.resizeHandler).Methods(http.MethodGet)
 
 	server := &http.Server{
 		Addr:    net.JoinHostPort(config.GetHTTPHost(), config.GetHTTPPort()),
@@ -113,6 +70,42 @@ func New(config Config, logger Logger, app Application) *Server {
 		Logger: logger,
 		Server: server,
 	}
+}
+
+// resizeHandler handles cropping requests.
+func (h *Handler) resizeHandler(w http.ResponseWriter, r *http.Request) {
+	width, err := strconv.Atoi(mux.Vars(r)[WidthField])
+	if err != nil {
+		SendBadGatewayStatus(w, h, fmt.Errorf("%w: %s", ErrParameterParseWidth, err))
+		return
+	}
+
+	height, err := strconv.Atoi(mux.Vars(r)[HeightField])
+	if err != nil {
+		SendBadGatewayStatus(w, h, fmt.Errorf("%w: %s", ErrParameterParseHeight, err))
+		return
+	}
+
+	bytes, err := h.App.ResizeImageByURL(width, height, mux.Vars(r)[URLField], r.Header)
+	if err != nil {
+		SendBadGatewayStatus(w, h, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", http.DetectContentType(bytes))
+	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
+	if _, err := w.Write(bytes); err != nil {
+		h.Logger.Error(fmt.Errorf("%w: %s", ErrResizeImage, err.Error()))
+	}
+}
+
+// SendBadGatewayStatus sends http.StatusBadGateway response with custom message.
+func SendBadGatewayStatus(w http.ResponseWriter, h *Handler, err error) {
+	w.WriteHeader(http.StatusBadGateway)
+	if n, e := w.Write([]byte(err.Error())); e != nil {
+		h.Logger.Error(fmt.Errorf("%w: trying to write %d bytes: %s", ErrResponseWrite, n, e.Error()))
+	}
+	h.Logger.Error(err.Error())
 }
 
 // Start launches a HTTP server.
