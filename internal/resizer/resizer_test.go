@@ -20,7 +20,7 @@ var (
 	ImageURL    = "raw.githubusercontent.com/OtusGolang/final_project/master/examples/image-previewer/gopher_2000x1000.jpg"
 )
 
-func TestApplication(t *testing.T) {
+func TestResizer(t *testing.T) {
 	t.Run("resizing test", func(t *testing.T) {
 		resizer := New()
 
