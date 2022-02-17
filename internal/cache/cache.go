@@ -28,7 +28,7 @@ type LruCache struct {
 	items    map[string]*ListItem
 	path     string
 	logger   Logger
-	mutex    sync.RWMutex
+	mutex    sync.Mutex
 }
 
 type cacheItem struct {
@@ -64,9 +64,10 @@ func New(config Config, logger Logger) (*LruCache, error) {
 
 // Get is a LruCache getter: returns value if exists, or error, if doesnt.
 func (l *LruCache) Get(key string) ([]byte, error) {
-	l.mutex.RLock()
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
 	item, exists := l.items[key]
-	l.mutex.RUnlock()
 
 	// If cache element doesn't exist, return empty slice
 	if !exists {
@@ -74,9 +75,7 @@ func (l *LruCache) Get(key string) ([]byte, error) {
 	}
 
 	// If cache element exists, move it to front
-	l.mutex.Lock()
 	l.queue.MoveToFront(item)
-	l.mutex.Unlock()
 
 	// To get actual value, interface{} needs to be casted to cacheItem
 	cacheItemElement := item.Value.(cacheItem)
@@ -93,9 +92,10 @@ func (l *LruCache) Get(key string) ([]byte, error) {
 
 // Set is a LruCache setter: sets or updates value, depends on whether the value exists or not.
 func (l *LruCache) Set(key string, imageBytes []byte) error {
-	l.mutex.RLock()
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
 	listItem, exists := l.items[key]
-	l.mutex.RUnlock()
 
 	filename := encodeFileName(key)
 	cacheItemElement := cacheItem{key, filename}
@@ -106,9 +106,7 @@ func (l *LruCache) Set(key string, imageBytes []byte) error {
 		l.queue.MoveToFront(listItem)
 	} else {
 		// If cache element doesn't exist, create
-		l.mutex.Lock()
 		listItem = l.queue.PushFront(cacheItemElement)
-		l.mutex.Unlock()
 
 		// If list exceeds capacity, remove last element from list and map
 		if int64(l.queue.Len()) > l.capacity {
@@ -123,9 +121,7 @@ func (l *LruCache) Set(key string, imageBytes []byte) error {
 	}
 
 	// Update map value anyway
-	l.mutex.Lock()
 	l.items[key] = listItem
-	l.mutex.Unlock()
 
 	return nil
 }
@@ -135,10 +131,8 @@ func (l *LruCache) removeLastRecentUsedElement() {
 		backCacheItem := item.Value.(cacheItem)
 		filename := backCacheItem.value
 
-		l.mutex.Lock()
 		delete(l.items, backCacheItem.key)
 		l.queue.Remove(item)
-		l.mutex.Unlock()
 
 		// Removing expired file from filesystem.
 		err := l.removeFromFileSystem(filename)
