@@ -7,6 +7,7 @@ networks:
 services:
   integration_tests:
     build: ../test
+    container_name: previewer_test_bdd
     command: 'true'
     environment:
       TESTS_HTTP_HOST: 'http://previewer:8888'
