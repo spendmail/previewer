@@ -64,9 +64,9 @@ func New(config Config, logger Logger) (*LruCache, error) {
 
 // Get is a LruCache getter: returns value if exists, or error, if doesnt.
 func (l *LruCache) Get(key string) ([]byte, error) {
-	l.mutex.Lock()
+	l.mutex.RLock()
 	item, exists := l.items[key]
-	l.mutex.Unlock()
+	l.mutex.RUnlock()
 
 	// If cache element doesn't exist, return empty slice
 	if !exists {
@@ -93,9 +93,9 @@ func (l *LruCache) Get(key string) ([]byte, error) {
 
 // Set is a LruCache setter: sets or updates value, depends on whether the value exists or not.
 func (l *LruCache) Set(key string, imageBytes []byte) error {
-	l.mutex.Lock()
+	l.mutex.RLock()
 	listItem, exists := l.items[key]
-	l.mutex.Unlock()
+	l.mutex.RUnlock()
 
 	filename := encodeFileName(key)
 	cacheItemElement := cacheItem{key, filename}
@@ -137,8 +137,8 @@ func (l *LruCache) removeLastRecentUsedElement() {
 
 		l.mutex.Lock()
 		delete(l.items, backCacheItem.key)
-		l.mutex.Unlock()
 		l.queue.Remove(item)
+		l.mutex.Unlock()
 
 		// Removing expired file from filesystem.
 		err := l.removeFromFileSystem(filename)
