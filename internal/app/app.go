@@ -45,14 +45,14 @@ var (
 )
 
 // downloadByURL downloads image by given url forwarding original headers.
-func (app *Application) downloadByURL(url string, header http.Header) ([]byte, error) {
+func (app *Application) downloadByURL(url string, headers map[string][]string) ([]byte, error) {
 	request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, DefaultScheme+url, nil)
 	if err != nil {
 		return []byte{}, fmt.Errorf("%w: %s", ErrRequest, err)
 	}
 
 	// Forwarding original headers to remote server.
-	for name, values := range header {
+	for name, values := range headers {
 		for _, value := range values {
 			request.Header.Add(name, value)
 		}
@@ -60,6 +60,7 @@ func (app *Application) downloadByURL(url string, header http.Header) ([]byte, e
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
+		// Identifying wrong DNS errors.
 		var DNSError *net.DNSError
 		if errors.As(err, &DNSError) {
 			return []byte{}, fmt.Errorf("%w: %s", ErrServerNotExists, err)
@@ -77,7 +78,8 @@ func (app *Application) downloadByURL(url string, header http.Header) ([]byte, e
 	return bytes, nil
 }
 
-func (app *Application) ResizeImageByURL(width, height int, url string, header http.Header) ([]byte, error) {
+// ResizeImageByURL downloads, caches and crops images by given sizes and URL.
+func (app *Application) ResizeImageByURL(width, height int, url string, headers map[string][]string) ([]byte, error) {
 	// Key includes sizes in order to store different files for different sizes of the same file.
 	cacheKey := fmt.Sprintf("%s-%d-%d", url, width, height)
 
@@ -88,7 +90,7 @@ func (app *Application) ResizeImageByURL(width, height int, url string, header h
 	}
 
 	// Otherwise, download file.
-	sourceBytes, err := app.downloadByURL(url, header)
+	sourceBytes, err := app.downloadByURL(url, headers)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -106,6 +108,7 @@ func (app *Application) ResizeImageByURL(width, height int, url string, header h
 	return resultBytes, nil
 }
 
+// New is an application constructor.
 func New(logger Logger, resizer Resizer, cache Cache) (*Application, error) {
 	return &Application{
 		Cache:   cache,

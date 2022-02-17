@@ -27,7 +27,7 @@ type Logger interface {
 }
 
 type Application interface {
-	ResizeImageByURL(width, height int, url string, header http.Header) ([]byte, error)
+	ResizeImageByURL(width, height int, url string, headers map[string][]string) ([]byte, error)
 }
 
 type Server struct {
