@@ -25,7 +25,7 @@ var (
 	HTTPHostPath         = fmt.Sprintf("/fill/%d/%d/", ImageWidth, ImageHeight)
 	ImageURL             = "raw.githubusercontent.com/OtusGolang/final_project/master/examples/image-previewer/gopher_2000x1000.jpg"
 	WrongImageURLPath    = "raw.githubusercontent.com/mistake_in_the_path"
-	WrongDNSURL          = "non-existent-domain.com/image.jpeg"
+	WrongDNSURL          = "this-is-non-existent-domain.com/image.jpeg"
 	ContentTypeImageJpeg = "image/jpeg"
 	ContentTypeTextPlain = "text/plain"
 )
