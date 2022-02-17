@@ -1,0 +1,63 @@
+name: Otus project tests
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  GO111MODULE: "on"
+
+jobs:
+  go_get:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, 'calendar') }}
+    timeout-minutes: 5
+    steps:
+      - name: Extract branch name
+        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17
+
+      - name: go get
+        run: cd /tmp && go get -v "github.com/${GITHUB_REPOSITORY}@${BRANCH}"
+
+  lint:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, 'calendar') }}
+    timeout-minutes: 5
+    steps:
+      - name: Extract branch name
+        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Linters
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.37
+          working-directory: .
+
+  tests:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, 'calendar') }}
+    timeout-minutes: 5
+    steps:
+      - name: Extract branch name
+        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.16
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Unit tests
+        run: go test -v -race -count 100 ./...
+        working-directory: .
