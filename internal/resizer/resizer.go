@@ -15,9 +15,10 @@ func New() *Resizer {
 }
 
 var (
-	ErrFileRead       = errors.New("unable to read a file")
-	ErrImageResize    = errors.New("unable to resize an image")
-	ErrQualitySetting = errors.New("unable to set a compression quality")
+	ErrFileRead                = errors.New("unable to read a file")
+	ErrImageResize             = errors.New("unable to resize an image")
+	ErrQualitySetting          = errors.New("unable to set a compression quality")
+	ErrBothSizesNegativeOrZero = errors.New("both given sizes are negative or zero")
 )
 
 // Resize modifies file sizes by given slice of bytes.
@@ -30,6 +31,21 @@ func (r *Resizer) Resize(width, height uint, image []byte) ([]byte, error) {
 	err := mw.ReadImageBlob(image)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrFileRead, err)
+	}
+
+	ow := mw.GetImageWidth()
+	oh := mw.GetImageHeight()
+
+	if height <= 0 && width <= 0 {
+		return nil, fmt.Errorf("%w: width: %d, height: %d", ErrBothSizesNegativeOrZero, width, height)
+	}
+
+	if height <= 0 {
+		height = oh * width / ow
+	}
+
+	if width <= 0 {
+		width = ow * height / oh
 	}
 
 	err = mw.ResizeImage(width, height, imagick.FILTER_LANCZOS, 1)
